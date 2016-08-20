@@ -25,14 +25,13 @@ Download
 --------
 
 T.B.D.
+
 .. 
     Get the latest version of zenunit-python from
-.. 
     https://pypi.python.org/pypi/zenunit-python/
+    ::
 
-.. ::
-
-..    $ pip install zenunit-python
+    $ pip install zenunit-python
 
 To get the git version do
 
@@ -49,7 +48,7 @@ License
 -------
 
 T.B.D.
+
 .. 
     Copyright (C) 2016 zenunit-python Developers
-.. 
     Youngsung Kim<grnydawn@gmail.com>
