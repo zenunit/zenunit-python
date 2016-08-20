@@ -1,7 +1,7 @@
 zenunit-python
 ==============
 
-Descriptive Unit-test Generation Framework for Python
+Descriptive unit-test generation framework for Python
 
 Documentation
    http://zenunit-python.github.io
