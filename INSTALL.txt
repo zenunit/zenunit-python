@@ -1,0 +1,3 @@
+See doc/source/install.rst
+or
+http://zenunit.github.io/documentation/latest/install.html

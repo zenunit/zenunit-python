@@ -1,0 +1,6 @@
+decorator>=3.4.0
+pytest
+pylint
+sphinx
+sphinxcontrib-bibtex
+sphinx_rtd_theme
