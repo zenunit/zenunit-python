@@ -2,9 +2,9 @@
 """
 
 tokens = (
-    'NAME', 'WHERE', 'VBAR', 'IN', 'ASTERISK', 'COMMA', 'AMPHERSAND',
+    'PYEXPR', 'WHERE', 'VBAR', 'IN', 'ASTERISK', 'COMMA', 'AMPHERSAND',
     'LPAREN','RPAREN','RBRACE', 'LBRACE',
-    'PLUS','MINUS','DIVIDE', 'WHITE',
+    'PLUS','MINUS','DIVIDE',
     )
 
 # Tokens
@@ -20,22 +20,23 @@ t_DIVIDE  = r'/'
 t_ASTERISK= r'\*'
 t_AMPHERSAND = r'&'
 t_COMMA   = r','
-t_NAME    = r'[a-zA-Z_][a-zA-Z0-9_]*'
-t_WHITE   = r'[ \t]+'
+#t_NAME    = r'[a-zA-Z_][a-zA-Z0-9_]*'
+#t_WHITE   = r'[ \t]+'
 t_WHERE   = r'where'
 t_IN      = r'in'
+t_PYEXPR  = r'[^\{\}\|,\r\n]+'
 
 # Ignored characters
-#t_ignore = " \t"
+t_ignore = " \t"
 
 def t_newline(t):
     r'\n+'
     t.lexer.lineno += t.value.count("\n")
-    
+
 def t_error(t):
     print("Illegal character '%s'" % t.value[0])
     t.lexer.skip(1)
-    
+
 # Build the lexer
 import ply.lex as lex
 lexer = lex.lex(debug=1)
@@ -43,9 +44,9 @@ lexer = lex.lex(debug=1)
 # Parsing rules
 
 precedence = (
-    ('left','PLUS','MINUS'),
+    ('left','PLUS','MINUS', 'COMMA'),
     ('left','VBAR','DIVIDE', 'AMPHERSAND'),
-    ('right','ASTERISK'),
+    ('right','ASTERISK', 'WHERE', 'IN'),
     )
 
 class Set(object):
@@ -57,6 +58,22 @@ class CompSet(object):
         self.op = None
         self.left = None
         self.right = None
+
+class SetRule(object):
+    def __init__(self, vartuple, setcond, where):
+        pass
+
+class VarTuple(object):
+    def __init__(self, expr):
+        pass
+
+class SetCond(object):
+    def __init__(self, expr):
+        pass
+
+class Where(object):
+    def __init__(self, vartuple, setexpr):
+        pass
 
 def showtree(obj, depth=0):
     TAB = 4
@@ -77,16 +94,16 @@ sets = []
 
 def p_compset(t):
     '''compset :  set
-        | compset opt_WHITE set_op opt_WHITE set
+        | compset set_op set
     '''
 
     if len(t) == 2:
         t[0] = t[1]
-    elif len(t) == 6:
+    elif len(t) == 4:
         t[0] = CompSet()
         t[0].left = t[1]
-        t[0].op = t[3]
-        t[0].right = t[5]
+        t[0].op = t[2]
+        t[0].right = t[3]
         sets.append(t[0])
     else:
         raise Exception('Wrong number of elements: %d'%len(t))
@@ -103,60 +120,75 @@ def p_set_op(t):
     t[0] = t[1]
 
 def p_set(t):
-    '''set : LBRACE opt_WHITE RBRACE
-        | LBRACE opt_WHITE elems opt_WHITE RBRACE
+    '''set : LBRACE RBRACE
+        | LBRACE elems RBRACE
     '''
 
-    if len(t) == 4:
+    if len(t) == 3:
+        t[0] = Set()
+    elif len(t) == 4:
         t[0] = Set()
         t[0].elems.append(t[2])
-    elif len(t) == 6:
-        t[0] = Set()
-        t[0].elems.append(t[3])
     else:
         raise Exception('Wrong number of elements: %d'%len(t))
     sets.append(t[0])
 
 def p_elems(t):
     '''elems : elem
-        | elems opt_WHITE COMMA opt_WHITE elem
+        | elems COMMA elem
     '''
 
     elen = len(t) - 1
 
     if elen == 1:
         t[0] = [t[1]]
-    elif elen == 5:
+    elif elen == 3:
         if t[1] is None:
             t[1] = []
-        t[0] = t[1] + [t[5]]
+        t[0] = t[1] + [t[3]]
     else:
         raise Exception('Wrong number of elements: %d'%elen)
 
 def p_elem(t):
-    '''elem : NAME
-        | set
+    '''elem : set
+        | PYEXPR
+        | set_rule
     '''
 
     t[0] = t[1]
 
-#def p_set_blank(t):
-#    'set_blank : LBRACE opt_WHITE RBRACE'
-#
-#    t[0] = Set(t[2])
-#
-#def p_set_nonblank(t):
-#    'set_nonblank : LBRACE opt_WHITE RBRACE'
-#
-#    t[0] = Set(t[2])
+def p_set_rule(t):
+    'set_rule : PYEXPR VBAR PYEXPR opt_where'
 
-def p_optional_white(t):
-    '''opt_WHITE :
-        | WHITE'''
-    if len(t) > 1:
-        t[0] = t[1]
+    t[0] = SetRule(VarTuple(t[1]), SetCond(t[3]), t[4])
+
+def p_opt_where(t):
+    '''opt_where :
+        | WHERE PYEXPR IN setlike
+    '''
+
+    if len(t) == 1:
+        pass
+    elif len(t) == 5:
+        t[0] = Where(VarTuple(t[2]), t[4])
     else:
-        t[0] = ''
+        raise Exception('Wrong number of elements: %d'%len(t))
+
+def p_setlike(t):
+    ''' setlike : set
+        | PYEXPR
+    '''
+
+    t[0] = t[1]
+
+#def p_optional_white(t):
+#    '''opt_WHITE :
+#        | WHITE
+#    '''
+#    if len(t) > 1:
+#        t[0] = t[1]
+#    else:
+#        t[0] = ''
 
 ## dictionary of names
 #names = { }
