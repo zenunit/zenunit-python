@@ -24,8 +24,6 @@ Development
 Download
 --------
 
-T.B.D.
-
 .. 
     Get the latest version of zenunit-python from
     https://pypi.python.org/pypi/zenunit-python/
