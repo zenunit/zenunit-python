@@ -87,3 +87,8 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# custom settings
+*.swp
+zenunit/classes/parser.out
+zenunit/classes/parsetab.py
