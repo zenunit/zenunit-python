@@ -25,8 +25,10 @@ Download
 --------
 
 T.B.D.
-.. # Get the latest version of zenunit-python from
-.. # https://pypi.python.org/pypi/zenunit-python/
+.. 
+    Get the latest version of zenunit-python from
+.. 
+    https://pypi.python.org/pypi/zenunit-python/
 
 .. ::
 
@@ -47,5 +49,7 @@ License
 -------
 
 T.B.D.
-.. #   Copyright (C) 2016 zenunit-python Developers
-.. #   Youngsung Kim<grnydawn@gmail.com>
+.. 
+    Copyright (C) 2016 zenunit-python Developers
+.. 
+    Youngsung Kim<grnydawn@gmail.com>
