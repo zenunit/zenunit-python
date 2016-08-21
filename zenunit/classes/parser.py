@@ -4,7 +4,7 @@ import zuset
 
 tokens = (
     'PYEXPR', 'WHERE', 'VBAR', 'IN', 'ASTERISK', 'COMMA', 'AMPHERSAND',
-    'RBRACE', 'LBRACE', 'PLUS','MINUS','DIVIDE',
+    'RBRACE', 'LBRACE', 'PLUS','MINUS','DIVIDE', 'AND'
     )
 
 # Tokens
@@ -24,6 +24,7 @@ t_COMMA   = r','
 #t_WHITE   = r'[ \t]+'
 t_WHERE   = r'where'
 t_IN      = r'in'
+t_AND      = r'and'
 t_PYEXPR  = r'[^\{\}\|,\r\n]+'
 
 # Ignored characters
@@ -39,13 +40,13 @@ def t_error(t):
 
 # Build the lexer
 import ply.lex as lex
-lexer = lex.lex(debug=1)
+lexer = lex.lex(debug=0)
 
 # Parsing rules
 
 precedence = (
     ('left','PLUS','MINUS', 'COMMA'),
-    ('left','VBAR','DIVIDE', 'AMPHERSAND'),
+    ('left','VBAR','DIVIDE', 'AMPHERSAND', 'AND'),
     ('right','ASTERISK', 'WHERE', 'IN'),
     )
 
@@ -117,19 +118,38 @@ def p_elem(t):
 def p_set_rule(t):
     'set_rule : PYEXPR VBAR PYEXPR opt_where'
 
-    t[0] = SetRule(zuset.VarTuple(t[1]), zuset.SetCond(t[3]), t[4])
+    t[0] = zuset.SetRule(zuset.VarTuple(t[1]), zuset.SetCond(t[3]), t[4])
 
 def p_opt_where(t):
     '''opt_where :
-        | WHERE PYEXPR IN setlike
+        | WHERE wherebodylist
     '''
 
     if len(t) == 1:
         pass
-    elif len(t) == 5:
-        t[0] = Where(zuset.VarTuple(t[2]), t[4])
+    elif len(t) == 3:
+        t[0] = Where(t[2])
     else:
         raise Exception('Wrong number of elements: %d'%len(t))
+
+def p_wherebodylist(t):
+    """wherebodylist : wherebody
+        | wherebodylist AND wherebody
+    """
+
+    if len(t) == 2:
+        t[0] = [t[1]]
+    elif len(t) == 4:
+        if t[1] is None:
+            t[1] = []
+        t[0] = t[1] + [t[3]]
+    else:
+        raise Exception('Wrong number of elements: %d'%len(t))
+
+def p_wherebody(t):
+    'wherebody : PYEXPR IN setlike'
+
+    t[0] = WhereBody(zuset.VarTuple(t[1]), t[3])
 
 def p_setlike(t):
     ''' setlike : set
@@ -223,7 +243,7 @@ def p_error(t):
 import ply.yacc as yacc
 
 def parse(s):
-    parser = yacc.yacc(debug=True)
+    parser = yacc.yacc(debug=False)
     s = preprocess(s)
     parser.parse(s)
     if len(zuset.sets) == 0:
@@ -243,5 +263,5 @@ if __name__ == "__main__":
         parser.parse(s)
         #import pdb; pdb.set_trace()
         for s in zuset.sets:
-            showtree(s)
+            zuset.showtree(s)
         zuset.sets = []

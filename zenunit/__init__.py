@@ -43,4 +43,28 @@ from zenunit.exception import zuException, zuError
 from zenunit.utils import *
 
 import zenunit.classes
-from zenunit.classes import parse
+from zenunit.classes import parse, hastest, _runtest
+
+def runtest(path, mode='unit'):
+    import os
+
+    # initialize
+    if not os.path.exists(path):
+        print('Path does not exist: %s'%path)
+        return
+
+    # discover
+    testpaths = []
+    for root, dirs, files in os.walk(path):
+        for f in files:
+            if f.endswith('.py') and hastest(os.path.join(root, f)):
+                testpaths.append(os.path.join(root, f))
+
+    # run
+    testresults = {}
+    for testpath in testpaths:
+        testresult = _runtest(testpath)
+        testresults[testpath] = testresult
+
+    # report
+    return testresults

@@ -46,6 +46,10 @@ class SetCond(object):
         pass
 
 class Where(object):
+    def __init__(self, bodylist):
+        pass
+
+class WhereBody(object):
     def __init__(self, vartuple, setexpr):
         pass
 

@@ -19,5 +19,5 @@ __author__ = """Youngsung Kim (grnydawn@gmail.com)"""
 class zuException(Exception):
     """Base class for exceptions in zenunit."""
 
-class zuError(zenunitException):
+class zuError(zuException):
     """Exception for a serious error in zenunit"""
