@@ -91,6 +91,8 @@ def showtree(obj, depth=0):
 
 # list of sets
 sets = []
+strmap = {}
+
 
 def p_compset(t):
     '''compset :  set
@@ -231,6 +233,85 @@ def p_setlike(t):
 #        print("Undefined name '%s'" % t[1])
 #        t[0] = 0
 
+def prep_quote(s):
+
+    strmapid = 0
+
+    if not s: return s
+    escape = False
+    quotechar = None
+    retstr = []
+    quotestr = None
+    for _s in s:
+        if quotestr is None:
+            if escape or _s == "\\":
+                raise Exception('Wrong escaping')
+            elif _s in [ '"', "'" ]:
+                quotechar = _s
+                quotestr = []
+            else:
+                retstr.append(_s)
+        else:
+            if escape:
+                quotestr.append(_s)
+                escape = False
+            elif _s == "\\":
+                quotestr.append(_s)
+                escape = True
+            elif _s in [ '"', "'" ]:
+                if quotechar == _s:
+                    key = '__ZENUNIT_STRMAP_%d'%strmapid
+                    strmapid += 1
+                    strmap[key] = ''.join(quotestr)
+                    retstr.append(key)
+                    quotestr = None
+                else:
+                    quotestr.append(_s)
+            else:
+                quotestr.append(_s)
+
+    return ''.join(retstr)
+
+def prep_paren(s):
+    if not s: return s
+
+    parenmapid = 0
+    retstr = []
+    parenstr = None
+    depth = 0
+    for _s in s:
+        if parenstr is None:
+            if _s == '(':
+                parenstr = []
+                depth += 1
+            elif _s == ')':
+                raise Exception('Wrong parensis')
+            else:
+                retstr.append(_s)
+        else:
+            if _s == '(':
+                parenstr.append(_s)
+                depth += 1
+            elif _s == ')':
+                depth -= 1
+                if depth == 0:
+                    key = '__ZENUNIT_PARENMAP_%d'%parenmapid
+                    parenmapid += 1
+                    strmap[key] = ''.join(parenstr)
+                    retstr.append(key)
+                    parenstr = None
+                else:
+                    parenstr.append(_s)
+            else:
+                parenstr.append(_s)
+
+    return ''.join(retstr)
+
+def preprocess(s):
+    s = prep_quote(s)
+    s = prep_paren(s)
+    return s
+
 def p_error(t):
     print("Syntax error at '%s'" % t.value)
 
@@ -242,6 +323,7 @@ while True:
         s = raw_input('zenunit > ')   # Use raw_input on Python 2
     except EOFError:
         break
+    s = preprocess(s)
     parser.parse(s)
     for s in sets:
         showtree(s)
